@@ -5,7 +5,7 @@ import Stripe from "stripe"
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const placeOrder = async (req, res) => {
     
-    const frontend_url = "https://bulbulart.netlify.app/myorders";
+    const frontend_url = "http://localhost:5173/myorders";
 
     try {
         const newOrder = new orderModel({
@@ -139,7 +139,26 @@ const userOrders = async (req,res) => {
 const listOrders = async(req,res) => {
     try {
         const orders = await orderModel.find({});
-        res.json({success:true,data:orders})
+        
+        // Fetch user information for each order
+        const ordersWithUserInfo = await Promise.all(
+            orders.map(async (order) => {
+                try {
+                    const user = await userModel.findById(order.userId);
+                    return {
+                        ...order.toObject(),
+                        customerName: user ? user.name : "Unknown"
+                    };
+                } catch (error) {
+                    return {
+                        ...order.toObject(),
+                        customerName: "Unknown"
+                    };
+                }
+            })
+        );
+        
+        res.json({success:true,data:ordersWithUserInfo})
     } catch (error) {
         console.log(error);
         res.json({success:false,message:"Error"})

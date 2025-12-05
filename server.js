@@ -13,7 +13,12 @@ const port = process.env.PORT || 3000;
 
 // middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:5173", "https://bulbulart.netlify.app",
+              "http://localhost:5174", "https://admin-of-art.netlify.app", 
+              "http://localhost:3000"],
+    credentials: true
+}));
 
 // db connection
 connectDB();
